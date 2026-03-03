@@ -47,8 +47,9 @@ type kdTreeNode struct {
 }
 
 type KDTree struct {
-	root *kdTreeNode
-	dim  int
+	root   *kdTreeNode
+	dim    int
+	height int
 }
 
 func (t *KDTree) Dim() int {
@@ -56,7 +57,7 @@ func (t *KDTree) Dim() int {
 }
 
 func (t *KDTree) KNN(target Point, k int) []Point {
-	hp := &kNNHeapHelper{}
+	hp := newKNNHeapHelper(k)
 	t.search(t.root, hp, target, k)
 	ret := make([]Point, 0, hp.Len())
 	for hp.Len() > 0 {
@@ -110,10 +111,20 @@ func NewKDTree(points []Point) *KDTree {
 		return nil
 	}
 	ret := &KDTree{
-		dim:  points[0].Dim(),
-		root: createKDTree(points, 0),
+		dim:    points[0].Dim(),
+		root:   createKDTree(points, 0),
+		height: calcH(len(points)),
 	}
 	return ret
+}
+
+func calcH(l int) int {
+	height := 0
+	for l > 0 {
+		height++
+		l >>= 1
+	}
+	return height + 1
 }
 
 func createKDTree(points []Point, depth int) *kdTreeNode {
@@ -134,7 +145,7 @@ func createKDTree(points []Point, depth int) *kdTreeNode {
 	}
 	ret.splittingPoint = points[idx]
 	ret.leftChild = createKDTree(points[0:idx], depth+1)
-	ret.rightChild = createKDTree(points[idx+1:len(points)], depth+1)
+	ret.rightChild = createKDTree(points[idx+1:], depth+1)
 	return ret
 }
 
@@ -174,6 +185,11 @@ type kNNHeapNode struct {
 }
 
 type kNNHeapHelper []*kNNHeapNode
+
+func newKNNHeapHelper(cap int) *kNNHeapHelper {
+	ret := make(kNNHeapHelper, 0, cap)
+	return &ret
+}
 
 func (h kNNHeapHelper) Len() int {
 	return len(h)
