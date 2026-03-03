@@ -1,4 +1,4 @@
-module github.com/hongshibao/go-kdtree
+module github.com/callla-74/go-kdtree
 
 go 1.16
 
